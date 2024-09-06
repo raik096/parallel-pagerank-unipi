@@ -65,7 +65,6 @@ pthread_mutex_t mu;
 pthread_cond_t cond;
 pthread_cond_t up;
 pthread_barrier_t barriera;
-#define SIGINT = 1;
 
 void *tbody(void *arg); //quello che fa il thread lettura
 void *sighandler(void *arg);
@@ -142,14 +141,12 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Errore nell'allocazione array struct per i threads");
         exit(1);
     }
-    struct sigaction sa;
+
     pthread_t srHandler;
     sigset_t maschera;                              //struttura dove rappresento il segnale
-    sa.sa_handler = &srHandler;
     sigemptyset(&maschera);                         //inizializzo maschera come insieme vuoto
     sigaddset(&maschera, SIGUSR1);                  //aggiungo all'insieme il segna SIGUSR1
     pthread_sigmask(SIG_BLOCK, &maschera, NULL);    //blocco il segnale al mainthread
-    sigaction(SIGINT, &sa, NULL);
 
     g->archi_validi = 0;
     g->iterazione = 0;
@@ -580,5 +577,5 @@ void *sighandler(void *arg)
         break;
     }
     
-    kill(getpid(), SIGUSR1); //se ho finito tutto mi uccido da solo
+    kill(getpid(), SIGUSR1);  
 }
