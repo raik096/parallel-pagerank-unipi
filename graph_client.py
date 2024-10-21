@@ -4,7 +4,6 @@ import socket
 import argparse
 import struct
 import threading
-import os
 
 # valori di default verso cui connettersi 
 HOST = "127.0.0.1"  # The server's hostname or IP address
@@ -78,3 +77,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     avvio_client(args.files)
+
