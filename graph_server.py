@@ -16,9 +16,7 @@ logging.basicConfig(filename='server.log', level=logging.INFO,
 HOST = "127.0.0.1"
 PORT = 54783
 
-# Variabili globali per tenere traccia degli archi
-archi_validi = 0
-archi_scartati = 0
+# Variabili global
 threads = []
 procedi = True
 s = None  # Socket globale per poterlo chiudere
@@ -50,7 +48,7 @@ def gestisci_connessione(conn, addr):
                     i = struct.unpack("!i", arco[:4])[0]
                     j = struct.unpack("!i", arco[4:])[0]
                     
-                    if 0 <= i < num_nodi and 0 <= j < num_nodi:
+                    if 0 < i <= num_nodi and 0 < j <= num_nodi:
                         buffer_scrittura.append(i)
                         buffer_scrittura.append(j)
                         archi_validi += 1
@@ -136,4 +134,4 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, handler_signal_sigint)
     avvio_server()
 
-    
+     
