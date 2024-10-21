@@ -40,6 +40,9 @@ def gestisci_connessione(conn, addr):
 
             with tempfile.NamedTemporaryFile(delete=False, mode='w') as temp_file:
                 temp_file.write(f"{num_nodi} {num_nodi} {num_archi}\n")
+
+                archi_validi = 0
+                archi_scartati = 0
                 
                 for _ in range(num_archi):
                     arco = recv_all(conn, 8)
