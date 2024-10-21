@@ -60,7 +60,7 @@ def gestisci_connessione(conn, addr):
                     else:
                         archi_scartati += 1
                 
-                # Scrive gli archi rimanenti
+                # Scrivo gli archi rimanenti
                 for k in range(0, len(buffer_scrittura), 2):
                     temp_file.write(f"{buffer_scrittura[k]} {buffer_scrittura[k + 1]}\n")
 
@@ -78,8 +78,6 @@ def gestisci_connessione(conn, addr):
             logging.info(f"\nNodi totali: {num_nodi}\nNome file tmp: {temp_file.name}\n"
                          f"Archi scartati: {archi_scartati}\nArchi validi: {archi_validi}\n"
                          f"EXIT CODE di PageRank: {risultato.returncode}\n")
-
-            # Elimino il thread appena terminato 
 
     finally:
         with lock:
