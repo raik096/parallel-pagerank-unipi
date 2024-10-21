@@ -1,0 +1,131 @@
+#! /usr/bin/env python3
+import sys
+import signal
+import struct
+import socket
+import tempfile
+import subprocess
+import logging
+import threading
+
+# Configura il logging
+logging.basicConfig(filename='server.log', level=logging.INFO, 
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Specifica da dove accettare le connessioni
+HOST = "127.0.0.1"
+PORT = 54783
+
+# Variabili globali per tenere traccia degli archi
+archi_validi = 0
+archi_scartati = 0
+# Un altra variabile per tenere una lista dei thread
+threads = []
+procedi = True
+s = None  # Socket globale per poterlo chiudere
+
+def gestisci_connessione(conn, addr):
+    global archi_validi, archi_scartati
+    
+    try:
+        with conn:
+            data = recv_all(conn, 8)
+            assert len(data) == 8, "Errore ricezione interi"
+
+            num_nodi = struct.unpack("!i", data[:4])[0]
+            num_archi = struct.unpack("!i", data[4:])[0]
+
+            buffer_scrittura = []
+
+            with tempfile.NamedTemporaryFile(delete=False, mode='w') as temp_file:
+                temp_file.write(f"{num_nodi} {num_nodi} {num_archi}\n")
+                
+                for _ in range(num_archi):
+                    arco = recv_all(conn, 8)
+                    assert len(arco) == 8
+                    i = struct.unpack("!i", arco[:4])[0]
+                    j = struct.unpack("!i", arco[4:])[0]
+                    
+                    if 0 <= i < num_nodi and 0 <= j < num_nodi:
+                        buffer_scrittura.append(i)
+                        buffer_scrittura.append(j)
+                        archi_validi += 1
+                        
+                        if len(buffer_scrittura) >= 10:
+                            for k in range(0, 10, 2):
+                                temp_file.write(f"{buffer_scrittura[k]} {buffer_scrittura[k + 1]}\n")
+                            buffer_scrittura = buffer_scrittura[10:]
+                    else:
+                        archi_scartati += 1
+                
+                # Scrive gli archi rimanenti
+                for k in range(0, len(buffer_scrittura), 2):
+                    temp_file.write(f"{buffer_scrittura[k]} {buffer_scrittura[k + 1]}\n")
+
+            # Esegui il programma pagerank
+            risultato = subprocess.run(["./pagerank", temp_file.name], capture_output=True, text=True)
+            if risultato.returncode == 0:
+                conn.sendall((0).to_bytes(4, 'big'))
+                conn.sendall(risultato.stdout.encode())
+            else:
+                exit_code = max(0, risultato.returncode)  # Assicurati che il codice di uscita sia non negativo
+                conn.sendall(exit_code.to_bytes(4, 'big'))
+                conn.sendall(risultato.stderr.encode())
+
+            # Log delle informazioni
+            logging.info(f"\nNodi totali: {num_nodi}\nNome file tmp: {temp_file.name}\n"
+                         f"Archi scartati: {archi_scartati}\nArchi validi: {archi_validi}\n"
+                         f"EXIT CODE di PageRank: {risultato.returncode}\n")
+
+    finally:
+        conn.close()
+
+def recv_all(conn, n):
+    chunks = b''
+    bytes_recd = 0
+    while bytes_recd < n:
+        chunk = conn.recv(min(n - bytes_recd, 800))
+        if len(chunk) == 0:
+            raise RuntimeError("socket connection broken")
+        chunks += chunk
+        bytes_recd += len(chunk)
+    return chunks
+
+def avvio_server():
+    global s
+    print(f"In attesa da {HOST} sulla porta {PORT}") 
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind((HOST, PORT))
+    s.listen()
+    print("Server in ascolto...")
+
+    while procedi:
+        try:
+            conn, addr = s.accept()
+            print(f"Connessione da {addr}")
+            taux = threading.Thread(target=gestisci_connessione, args=(conn, addr))
+            threads.append(taux)  # aggiungo gli handler alla lista
+            taux.start()
+        except OSError:
+            # Questo errore può verificarsi se il socket è chiuso
+            break
+
+def handler_signal_sigint(signum, frame):
+    global procedi
+    procedi = False
+    print("Ricevuto SIGINT, il server smetterà di accettare nuove connessioni...")
+
+    # Non chiudere immediatamente, aspetta che i thread finiscano
+    for t in threads:
+        t.join()
+
+    if s:
+        s.close()
+
+    print("Server terminato.")
+    sys.exit(0)
+
+if __name__ == "__main__":
+    # gestisco il segnale sigint ad hoc
+    signal.signal(signal.SIGINT, handler_signal_sigint)
+    avvio_server()
