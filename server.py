@@ -121,6 +121,7 @@ def avvio_server():
                 t.start()
             except OSError:
                 break
+    print("\nBye dal server")
 
         
 
