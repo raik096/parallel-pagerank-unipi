@@ -99,11 +99,9 @@ def recv_all(conn, n):
 
 def avvio_server():
     global s
-    print(f"In attesa da {HOST} sulla porta {PORT}") 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((HOST, PORT))
         s.listen()
-        print("Server in ascolto...")
 
         # faccio una lista di threads accettati fino a che procedi non diventa false
         while procedi:
@@ -112,7 +110,6 @@ def avvio_server():
                 if procedi == False:
                     conn.close()
                     break
-                print(f"Connessione da {addr}")
                 t = threading.Thread(target=gestisci_connessione, args=(conn, addr))
                 with lock:
                     threads.append(t)  # aggiungo il taux alla lista
