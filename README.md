@@ -1,29 +1,98 @@
-# PageRank---LAB-II
-Progetto finale completo anno 2023/2024
 
-######### MAIN.C #########
+# Progetto PageRank – Laboratorio II (2023/2024)
 
-Il programma main.c usa sostanzialmente due meccanismi di suddivisione del lavoro con i thread:
+## 📖 Introduzione
 
-1) Dividera' il numero dei nodi con il numero dei threads in modo da suddividere il carico di lavoro equamente, lavorando direttamente sull'array coinvolto senza meccanismi di sincronizzazione.
+Questo repository contiene la mia implementazione dell'algoritmo **PageRank** sviluppata in C per il corso di Laboratorio II. Il progetto prevede una parallelizzazione tramite thread POSIX e un'infrastruttura client-server in Python per gestire l'invio e l'elaborazione di grafi.
 
-2) Usera' una "pila" di indici, dove ogni thread sotto mutex, cercherà di accedere all'intero (quando parte o quando finisce il calcolo della i'esima pagina). Se la variabile di mutex è sbloccata allora la bloccherà, legge l'indice, lo decrementa di 1 (l'indice max == # nodi - 1) e il thread, dopo aver sbloccato la variabile mutex, si prenderà in carico il calcolo dell'iterazione t+1, sulla pagina di indice trovato. una volta finito, come tutti gli altri thread, re interrogherà il mux per trovare l'indice su cui lavorare. Tutto ciò finché l'intero è -1.
+---
 
-Nella fase di:
-- lettura dal grafo viene usato il metodo 1)
-- nella fase di calcolo del pageranking vengono usati 1), 2), 1) in modo da lavorare dove possibile direttamente sull'array. Una volta che tutti i thread hanno calcolato il vettore xnext, restituiranno il risultato al main thread, si metteranno in attesa, quest'ultimo controllerà lo scarto e se viene superato (oppure si raggione l'iter max) allora i threads verranno fermati e si restituira' alla funzione main il vettore x.
+## 🛠️ Caratteristiche principali
 
-######### SERVER_GRAPH.PY #########
+### Parallelizzazione tramite Thread
+Ho utilizzato i thread POSIX per velocizzare il calcolo del PageRank, scegliendo due strategie principali:
+- **Suddivisione statica dei nodi** tra i thread per ridurre la necessità di sincronizzazione.
+- **Allocazione dinamica dei task** tramite una pila condivisa protetta da mutex, così da bilanciare meglio il carico di lavoro.
 
-Il programma server_graph.py invece tiene una lista globale di tutti i thread attivi, ogni thread quando termina si toglie dalla lista (dietro protezione di un mutex). Avvia un loop dal quale puo' uscire solo con SIGINT, all'interno di questo loop appena avviene una connessione viene dedicato un thread a quella connessione specifica, e il thread viene aggiunto alla lista globale. La chiusura del socket avviene dopo il join di tutti i thread rimasti attivi da parte dell'signale handler.
+### Gestione Memoria
+- Ho implementato una struttura dati efficiente per il grafo (`typdef struct grafo`) per contenere solo le informazioni essenziali degli archi entranti e uscenti.
+- Durante la lettura iniziale del file, vengono scartati gli archi duplicati o auto-referenziali, riducendo il consumo di memoria.
 
-######### SERVER_CLIENT.PY #########
+### Sincronizzazione dei Thread
+- Ho utilizzato mutex e condition variables per gestire correttamente le risorse condivise.
+- I thread rimangono attivi durante tutto il processo, evitando overhead continui di creazione e distruzione.
 
-Nel programma client_graph.py viene creato un thread per ogni file, ad ogni thread viene incaricato la gestione del file
+---
 
+## 🔍 Dettagli Implementativi
 
+### Algoritmo e Convergenza
+- Ho seguito scrupolosamente la formula standard del PageRank, pre-calcolando il contributo dei nodi dead-end.
+- La convergenza dell'algoritmo viene controllata tramite una soglia configurabile di errore assoluto tra iterazioni consecutive.
 
+### Gestione Segnali
+- Un thread dedicato mostra informazioni in tempo reale sul calcolo (iterazione corrente e nodo con massimo rank) quando riceve il segnale `SIGUSR1`.
 
+### Linea di Comando
+L'eseguibile `pagerank` accetta diverse opzioni configurabili:
+```bash
+pagerank [-k K] [-m M] [-d D] [-e E] [-t T] infile
+```
 
+---
 
+## 🌐 Parte Client-Server (Python)
 
+### Server (`graph_server.py`)
+- Server multi-threaded Python in ascolto su una porta locale.
+- Gestisce in maniera incrementale la ricezione e il salvataggio del grafo.
+- Utilizza `subprocess.run` per chiamare il programma `pagerank` e logga informazioni utili in un file dedicato.
+
+### Client (`graph_client.py`)
+- Client Python che invia simultaneamente più grafi al server tramite thread paralleli.
+- Output identificato chiaramente per ciascun grafo elaborato.
+
+---
+
+## 🧪 Test e validazione
+Ho eseguito diversi test su vari grafi benchmark:
+
+- Nessun problema riscontrato con Valgrind (assenza di memory leak).
+- I risultati ottenuti sono consistenti con i risultati attesi forniti.
+- L’algoritmo rispetta pienamente le condizioni di convergenza previste.
+
+Esempio di test eseguito:
+```bash
+valgrind ./pagerank web-Stanford.mtx -k8 1> web-Stanford.rk 2> web-Stanford.log
+```
+
+---
+
+## 📁 Struttura Repository
+```
+progetto/
+├── main.c
+├── pagerank.c
+├── pagerank.h
+├── graph_server.py
+├── graph_client.py
+├── 9nodi.mtx
+├── Makefile
+└── README.md
+```
+
+---
+
+## 📦 Come compilare ed eseguire il progetto
+
+```bash
+git clone git@github.com:user/progetto.git testdir
+cd testdir
+make
+./pagerank 9nodi.mtx
+```
+
+---
+
+## ✏️ Note conclusive
+Questo progetto è stato un'opportunità per approfondire la programmazione parallela e la gestione ottimizzata delle risorse in C e Python, migliorando sia le mie competenze tecniche che organizzative.
