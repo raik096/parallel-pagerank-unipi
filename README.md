@@ -3,7 +3,7 @@
 
 ## 📖 Introduzione
 
-Questo repository contiene la mia implementazione dell'algoritmo **PageRank** sviluppata in C per il corso di Laboratorio II all'Università di Pisa seguita dal Prof. Giovanni Manzini. Il progetto prevede una parallelizzazione tramite thread POSIX e un'infrastruttura client-server in Python per gestire l'invio e l'elaborazione di grafi.
+Questo repository contiene la mia implementazione dell'algoritmo **PageRank** sviluppata in C per il corso di Laboratorio II all'Università di Pisa eseguita dal Prof. Giovanni Manzini. Il progetto prevede una parallelizzazione tramite thread POSIX e un'infrastruttura client-server in Python per gestire l'invio e l'elaborazione di grafi.
 
 ---
 
