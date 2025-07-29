@@ -3,23 +3,23 @@
 
 ## 📖 Introduzione
 
-Questo repository contiene la mia implementazione dell'algoritmo **PageRank** sviluppata in C per il corso di Laboratorio II. Il progetto prevede una parallelizzazione tramite thread POSIX e un'infrastruttura client-server in Python per gestire l'invio e l'elaborazione di grafi.
+Questo repository contiene la mia implementazione dell'algoritmo **PageRank** sviluppata in C per il corso di Laboratorio II all'Università di Pisa seguita dal Prof. Giovanni Manzini. Il progetto prevede una parallelizzazione tramite thread POSIX e un'infrastruttura client-server in Python per gestire l'invio e l'elaborazione di grafi.
 
 ---
 
 ## 🛠️ Caratteristiche principali
 
 ### Parallelizzazione tramite Thread
-Ho utilizzato i thread POSIX per velocizzare il calcolo del PageRank, scegliendo due strategie principali:
+Sono stato utilizzati i thread POSIX per velocizzare il calcolo del PageRank, scegliendo due strategie principali:
 - **Suddivisione statica dei nodi** tra i thread per ridurre la necessità di sincronizzazione.
 - **Allocazione dinamica dei task** tramite una pila condivisa protetta da mutex, così da bilanciare meglio il carico di lavoro.
 
 ### Gestione Memoria
-- Ho implementato una struttura dati efficiente per il grafo (`typdef struct grafo`) per contenere solo le informazioni essenziali degli archi entranti e uscenti.
+- E' stata implementata una struttura dati efficiente per il grafo (`typdef struct grafo`) per contenere solo le informazioni essenziali degli archi entranti e uscenti.
 - Durante la lettura iniziale del file, vengono scartati gli archi duplicati o auto-referenziali, riducendo il consumo di memoria.
 
 ### Sincronizzazione dei Thread
-- Ho utilizzato mutex e condition variables per gestire correttamente le risorse condivise.
+- Vengono utilizzati mutex e condition variables per gestire le risorse condivise.
 - I thread rimangono attivi durante tutto il processo, evitando overhead continui di creazione e distruzione.
 
 ---
@@ -27,7 +27,7 @@ Ho utilizzato i thread POSIX per velocizzare il calcolo del PageRank, scegliendo
 ## 🔍 Dettagli Implementativi
 
 ### Algoritmo e Convergenza
-- Ho seguito scrupolosamente la formula standard del PageRank, pre-calcolando il contributo dei nodi dead-end.
+- Viene eseguita la formula standard del PageRank, pre-calcolando il contributo dei nodi dead-end.
 - La convergenza dell'algoritmo viene controllata tramite una soglia configurabile di errore assoluto tra iterazioni consecutive.
 
 ### Gestione Segnali
@@ -93,6 +93,3 @@ make
 ```
 
 ---
-
-## ✏️ Note conclusive
-Questo progetto è stato un'opportunità per approfondire la programmazione parallela e la gestione ottimizzata delle risorse in C e Python, migliorando sia le mie competenze tecniche che organizzative.
