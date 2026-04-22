@@ -1,95 +1,38 @@
+# PageRank Project – Laboratorio II (2023/2024)
 
-# Progetto PageRank – Laboratorio II (2023/2024)
+## 📖 Introduction
 
-## 📖 Introduzione
-
-Questo repository contiene la mia implementazione dell'algoritmo **PageRank** sviluppata in C un ambiente Linux per il corso di Laboratorio II all'Università di Pisa eseguita dal Prof. Giovanni Manzini. Il progetto prevede una parallelizzazione tramite thread POSIX e un'infrastruttura client-server in Python per gestire l'invio e l'elaborazione di grafi. Ulteriori dettagli sono nel file **progetto.pdf**
-
----
-
-## 🛠️ Caratteristiche principali
-
-### Parallelizzazione tramite Thread
-Sono stato utilizzati i thread POSIX per velocizzare il calcolo del PageRank, scegliendo due strategie principali:
-- **Suddivisione statica dei nodi** tra i thread per ridurre la necessità di sincronizzazione.
-- **Allocazione dinamica dei task** tramite una pila condivisa protetta da mutex, così da bilanciare meglio il carico di lavoro.
-
-### Gestione Memoria
-- E' stata implementata una struttura dati efficiente per il grafo (`typdef struct grafo`) per contenere solo le informazioni essenziali degli archi entranti e uscenti.
-- Durante la lettura iniziale del file, vengono scartati gli archi duplicati o auto-referenziali, riducendo il consumo di memoria.
-
-### Sincronizzazione dei Thread
-- Vengono utilizzati mutex e condition variables per gestire le risorse condivise.
-- I thread rimangono attivi durante tutto il processo, evitando overhead continui di creazione e distruzione.
+This repository contains my implementation of the **PageRank** algorithm, developed in C within a Linux environment for the Laboratorio II course at the University of Pisa, taught by Prof. Giovanni Manzini. The project features parallelization using POSIX threads and a Python client-server infrastructure to manage the transmission and processing of graphs. Further details can be found in the **progetto.pdf** file.
 
 ---
 
-## 🔍 Dettagli Implementativi
+## 🛠️ Main Features
 
-### Algoritmo e Convergenza
-- Viene eseguita la formula standard del PageRank, pre-calcolando il contributo dei nodi dead-end.
-- La convergenza dell'algoritmo viene controllata tramite una soglia configurabile di errore assoluto tra iterazioni consecutive.
+### Thread Parallelization
+POSIX threads were used to speed up the PageRank calculation, employing two main strategies:
+- **Static node division** among threads to reduce the need for synchronization.
+- **Dynamic task allocation** via a shared stack protected by mutexes, to better balance the workload.
 
-### Gestione Segnali
-- Un thread dedicato mostra informazioni in tempo reale sul calcolo (iterazione corrente e nodo con massimo rank) quando riceve il segnale `SIGUSR1`.
+### Memory Management
+- Implemented an efficient data structure for the graph (`typedef struct grafo`) to contain only the essential information about incoming and outgoing edges.
+- During the initial file reading, duplicate or self-referencing edges are discarded, reducing memory consumption.
 
-### Linea di Comando
-L'eseguibile `pagerank` accetta diverse opzioni configurabili:
+### Thread Synchronization
+- Mutexes and condition variables are used to manage shared resources.
+- Threads remain active throughout the entire process, avoiding the continuous overhead of creation and destruction.
+
+---
+
+## 🔍 Implementation Details
+
+### Algorithm and Convergence
+- Executes the standard PageRank formula, pre-calculating the contribution of dead-end nodes.
+- The algorithm's convergence is checked via a configurable absolute error threshold between consecutive iterations.
+
+### Signal Handling
+- A dedicated thread displays real-time computation info (current iteration and the node with the highest rank) upon receiving the `SIGUSR1` signal.
+
+### Command Line
+The `pagerank` executable accepts several configurable options:
 ```bash
 pagerank [-k K] [-m M] [-d D] [-e E] [-t T] infile
-```
-
----
-
-## 🌐 Parte Client-Server (Python)
-
-### Server (`graph_server.py`)
-- Server multi-threaded Python in ascolto su una porta locale.
-- Gestisce in maniera incrementale la ricezione e il salvataggio del grafo.
-- Utilizza `subprocess.run` per chiamare il programma `pagerank` e logga informazioni utili in un file dedicato.
-
-### Client (`graph_client.py`)
-- Client Python che invia simultaneamente più grafi al server tramite thread paralleli.
-- Output identificato chiaramente per ciascun grafo elaborato.
-
----
-
-## 🧪 Test e validazione
-Ho eseguito diversi test su vari grafi benchmark:
-
-- Nessun problema riscontrato con Valgrind (assenza di memory leak).
-- I risultati ottenuti sono consistenti con i risultati attesi forniti.
-- L’algoritmo rispetta pienamente le condizioni di convergenza previste.
-
-Esempio di test eseguito:
-```bash
-valgrind ./pagerank web-Stanford.mtx -k8 1> web-Stanford.rk 2> web-Stanford.log
-```
-
----
-
-## 📁 Struttura Repository
-```
-progetto/
-├── main.c
-├── pagerank.c
-├── pagerank.h
-├── graph_server.py
-├── graph_client.py
-├── 9nodi.mtx
-├── Makefile
-└── README.md
-```
-
----
-
-## 📦 Come compilare ed eseguire il progetto
-
-```bash
-git clone git@github.com:user/progetto.git testdir
-cd testdir
-make
-./pagerank 9nodi.mtx
-```
-
----
